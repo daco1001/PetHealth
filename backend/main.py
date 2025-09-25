@@ -73,3 +73,13 @@ def login(data: LoginRequest):
         return {"success": True, "message": "Login exitoso"}
     else:
         return {"success": False, "message": "Usuario o contraseña incorrectos"}
+
+
+# Endpoint para página de agendar
+@app.get("/agendar")
+def serve_agendar():
+    return FileResponse(os.path.join(FRONTEND_DIR, "agendar.html"))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=3000, reload=True)

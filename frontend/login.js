@@ -86,9 +86,9 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
 
     const data = await res.json();
     if (data.success) {
-    
-    window.location.href = "inicio.html";  
+    window.location.href = "/agendar";  
 } else {
     alert("Credenciales incorrectas");
 }
 });
+

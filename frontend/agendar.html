@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AGENDAR</title>
+    <link rel="stylesheet" href="/static/agendar.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="container">
+        <div class="header-content">
+          <div class="logo">Pet<span>Healt</span></div>
+          <nav>
+            <ul>
+              <li><a href="#">Inicio</a></li>
+              <li><a href="#">Servicios</a></li>
+              <li><a href="#">Nosotros</a></li>
+              <li><a href="#">Contacto</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <h1>Cuidamos de tu mascota como si fuera nuestra</h1>
+        <p>
+          Agenda citas fácilmente y brinda la mejor atención a tu compañero fiel
+        </p>
+        <a href="#appointment" class="btn">Agendar cita ahora</a>
+      </div>
+    </section>
+
+    <!-- Appointment Section -->
+    <section id="appointment" class="appointment-section">
+      <div class="container">
+        <h2 class="section-title">Agendar Cita</h2>
+        <div class="appointment-container">
+          <!-- Formulario de registro -->
+          <div class="form-container">
+            <h3>Datos de la mascota</h3>
+            <form id="appointment-form">
+              <div class="form-group">
+                <label for="pet-name">Nombre de la mascota</label>
+                <input
+                  type="text"
+                  id="pet-name"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="pet-type">Tipo de mascota</label>
+                <select id="pet-type" class="form-control" required>
+                  <option value="">Seleccione...</option>
+                  <option value="dog">Perro</option>
+                  <option value="cat">Gato</option>
+                  <option value="bird">Ave</option>
+                  <option value="other">Otro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="pet-breed">Raza</label>
+                <input type="text" id="pet-breed" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label for="pet-age">Edad</label>
+                <input
+                  type="number"
+                  id="pet-age"
+                  class="form-control"
+                  min="0"
+                />
+              </div>
+              <div class="form-group">
+                <label for="owner-name">Nombre del dueño</label>
+                <input
+                  type="text"
+                  id="owner-name"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="owner-phone">Teléfono</label>
+                <input
+                  type="tel"
+                  id="owner-phone"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="reason">Motivo de la consulta</label>
+                <textarea id="reason" class="form-control" rows="3"></textarea>
+              </div>
+            </form>
+          </div>
+
+          <!-- Calendario y horarios -->
+          <div class="calendar-container">
+            <h3>Selecciona fecha y hora</h3>
+            <div class="calendar">
+              <h4>Días disponibles (Lunes a Viernes)</h4>
+              <div class="week-days" id="week-days">
+                <!-- Los días se generarán con JavaScript -->
+              </div>
+
+              <h4>Horarios disponibles</h4>
+              <div class="time-slots" id="time-slots">
+                <!-- Los horarios se generarán con JavaScript -->
+              </div>
+            </div>
+
+            <button type="button" id="submit-appointment" class="submit-btn">
+              Confirmar cita
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>PetHealt</h3>
+            <p>Brindando cuidado y amor a tus mascotas desde 2024.</p>
+          </div>
+          <div class="footer-section">
+            <h3>Contacto</h3>
+            <p>📍 cr 1A#18A-13, Fusagasuga</p>
+            <p>📞 (+57) 3148074127</p>
+            <p>✉️ Pethealt@gmail.com</p>
+          </div>
+          <div class="footer-section">
+            <h3>Horario</h3>
+            <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+            <p>Sábados: 9:00 AM - 2:00 PM</p>
+            <p>Domingos: Cerrado</p>
+          </div>
+        </div>
+        <div class="copyright">
+          <p>© 2024 Pethealt - Todos los derechos reservados</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal de confirmación -->
+    <div id="confirmation-modal" class="modal">
+      <div class="modal-content">
+        <h3>¡Cita agendada exitosamente!</h3>
+        <p id="confirmation-details"></p>
+        <button class="modal-close" onclick="closeModal()">Cerrar</button>
+      </div>
+    </div>
+
+    <script src="/static/agendar.js"></script>
+  </body>
+</html>
