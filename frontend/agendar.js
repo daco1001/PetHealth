@@ -1,13 +1,4 @@
-// Datos de ejemplo para horarios ocupados (en una aplicación real vendrían de una base de datos)
-const occupiedSlots = {
-  "2023-11-06": ["09:00", "10:30", "14:00"],
-  "2023-11-07": ["11:00", "15:30"],
-  "2023-11-08": ["09:30", "13:00", "16:00"],
-  "2023-11-09": ["10:00", "14:30"],
-  "2023-11-10": ["11:30", "15:00"],
-};
-
-// Horarios disponibles de la clínica
+// Horarios disponibles
 const availableHours = [
   "09:00",
   "09:30",
@@ -22,12 +13,20 @@ const availableHours = [
   "16:00",
 ];
 
-// Variables globales
 let selectedDate = null;
 let selectedTime = null;
 
-// Inicializar aplicación
-document.addEventListener("DOMContentLoaded", function () {
+// Mostrar nombre del usuario logueado
+document.addEventListener("DOMContentLoaded", () => {
+  const nombreUsuario = localStorage.getItem("usuario_nombre");
+  if (nombreUsuario) {
+    const titulo = document.createElement("h3");
+    titulo.textContent = `👋 Bienvenido, ${nombreUsuario}`;
+    document
+      .querySelector(".section-title")
+      .insertAdjacentElement("afterend", titulo);
+  }
+
   initCalendar();
   initTimeSlots();
   document
@@ -35,38 +34,28 @@ document.addEventListener("DOMContentLoaded", function () {
     .addEventListener("click", submitAppointment);
 });
 
-// Inicializar calendario
 function initCalendar() {
   const weekDaysContainer = document.getElementById("week-days");
-  const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
   const today = new Date();
-  const currentDay = today.getDay();
-
-  let daysToAdd = 0;
-  if (currentDay === 0) daysToAdd = 1; // Domingo
-  if (currentDay === 6) daysToAdd = 2; // Sábado
+  while (today.getDay() !== 1) {
+    today.setDate(today.getDate() + 1);
+  }
 
   for (let i = 0; i < 5; i++) {
     const date = new Date(today);
-    date.setDate(today.getDate() + daysToAdd + i);
-
-    if (date.getDay() === 0) date.setDate(date.getDate() + 1);
-    if (date.getDay() === 6) date.setDate(date.getDate() + 2);
-
+    date.setDate(today.getDate() + i);
     const dayElement = document.createElement("div");
     dayElement.classList.add("day");
     dayElement.dataset.date = formatDate(date);
-
-    const dayName = daysOfWeek[date.getDay() - 1];
-    const dayNumber = date.getDate();
-    const month = date.getMonth() + 1;
-
-    dayElement.innerHTML = `<div>${dayName}</div><div>${dayNumber}/${month}</div>`;
-
-    dayElement.addEventListener("click", function () {
-      selectDate(this.dataset.date);
-    });
-
+    dayElement.innerHTML = `<div>${date.toLocaleDateString("es-ES", {
+      weekday: "long",
+    })}</div>
+                            <div>${date.getDate()}/${
+      date.getMonth() + 1
+    }</div>`;
+    dayElement.addEventListener("click", () =>
+      selectDate(dayElement.dataset.date)
+    );
     weekDaysContainer.appendChild(dayElement);
   }
 
@@ -74,81 +63,55 @@ function initCalendar() {
   if (firstDay) selectDate(firstDay.dataset.date);
 }
 
-// Inicializar horarios
+function formatDate(date) {
+  return date.toISOString().split("T")[0];
+}
+
 function initTimeSlots() {
   const timeSlotsContainer = document.getElementById("time-slots");
-  timeSlotsContainer.innerHTML = "";
-
   availableHours.forEach((time) => {
     const timeSlot = document.createElement("div");
     timeSlot.classList.add("time-slot");
     timeSlot.textContent = time;
     timeSlot.dataset.time = time;
-
-    timeSlot.addEventListener("click", function () {
-      if (!this.classList.contains("unavailable")) {
-        selectTime(this.dataset.time);
-      }
-    });
-
+    timeSlot.addEventListener("click", () => selectTime(time));
     timeSlotsContainer.appendChild(timeSlot);
   });
 }
 
-function formatDate(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function selectDate(date) {
   selectedDate = date;
-
-  document.querySelectorAll(".day").forEach((day) => {
-    day.classList.remove("selected");
-    if (day.dataset.date === date) {
-      day.classList.add("selected");
-    }
-  });
-
-  updateTimeSlotsAvailability(date);
+  document
+    .querySelectorAll(".day")
+    .forEach((d) => d.classList.remove("selected"));
+  document.querySelector(`.day[data-date='${date}']`).classList.add("selected");
 }
 
 function selectTime(time) {
   selectedTime = time;
-
-  document.querySelectorAll(".time-slot").forEach((slot) => {
-    slot.classList.remove("selected");
-    if (slot.dataset.time === time) {
-      slot.classList.add("selected");
-    }
-  });
+  document
+    .querySelectorAll(".time-slot")
+    .forEach((t) => t.classList.remove("selected"));
+  document
+    .querySelector(`.time-slot[data-time='${time}']`)
+    .classList.add("selected");
 }
 
-function updateTimeSlotsAvailability(date) {
-  const occupiedToday = occupiedSlots[date] || [];
+async function submitAppointment() {
+  const idUsuario = localStorage.getItem("usuario_id");
+  if (!idUsuario) {
+    alert("No hay sesión activa. Inicia sesión nuevamente.");
+    window.location.href = "/";
+    return;
+  }
 
-  document.querySelectorAll(".time-slot").forEach((slot) => {
-    const time = slot.dataset.time;
-    slot.classList.remove("unavailable");
-    if (occupiedToday.includes(time)) {
-      slot.classList.add("unavailable");
-    }
-  });
-
-  selectedTime = null;
-  document.querySelectorAll(".time-slot").forEach((slot) => {
-    slot.classList.remove("selected");
-  });
-}
-
-function submitAppointment() {
-  const form = document.getElementById("appointment-form");
   const petName = document.getElementById("pet-name").value;
   const petType = document.getElementById("pet-type").value;
-  const ownerName = document.getElementById("owner-name").value;
+  const petBreed = document.getElementById("pet-breed").value;
+  const petAge = document.getElementById("pet-age").value;
+  const ownerName = localStorage.getItem("usuario_nombre");
   const ownerPhone = document.getElementById("owner-phone").value;
+  const reason = document.getElementById("reason").value;
 
   if (!petName || !petType || !ownerName || !ownerPhone) {
     alert("Por favor completa todos los campos obligatorios.");
@@ -156,51 +119,40 @@ function submitAppointment() {
   }
 
   if (!selectedDate || !selectedTime) {
-    alert("Por favor selecciona una fecha y hora para tu cita.");
+    alert("Selecciona una fecha y hora para tu cita.");
     return;
   }
 
-  const dateParts = selectedDate.split("-");
-  const displayDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-
-  const confirmationDetails = `
-        <strong>Mascota:</strong> ${petName}<br>
-        <strong>Tipo:</strong> ${
-          document.getElementById("pet-type").options[
-            document.getElementById("pet-type").selectedIndex
-          ].text
-        }<br>
-        <strong>Fecha:</strong> ${displayDate}<br>
-        <strong>Hora:</strong> ${selectedTime}<br>
-        <strong>Dueño:</strong> ${ownerName}<br>
-        <strong>Teléfono:</strong> ${ownerPhone}
-    `;
-
-  document.getElementById("confirmation-details").innerHTML =
-    confirmationDetails;
-  document.getElementById("confirmation-modal").style.display = "flex";
-
-  console.log("Cita agendada:", {
-    petName,
-    petType,
-    petBreed: document.getElementById("pet-breed").value,
-    petAge: document.getElementById("pet-age").value,
-    ownerName,
-    ownerPhone,
-    reason: document.getElementById("reason").value,
-    date: selectedDate,
-    time: selectedTime,
+  const response = await fetch("http://localhost:3000/registrar_mascota", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id_usuario: parseInt(idUsuario),
+      nombre: petName,
+      tipo: petType,
+      raza: petBreed,
+      edad: petAge ? parseInt(petAge) : null,
+      motivo_consulta: reason,
+      telefono: ownerPhone,
+      fecha_registro: selectedDate,
+    }),
   });
 
-  if (!occupiedSlots[selectedDate]) {
-    occupiedSlots[selectedDate] = [];
-  }
-  occupiedSlots[selectedDate].push(selectedTime);
+  const data = await response.json();
 
-  updateTimeSlotsAvailability(selectedDate);
-  form.reset();
-  selectedDate = null;
-  selectedTime = null;
+  if (data.success) {
+    document.getElementById("confirmation-details").innerHTML = `
+      <strong>Mascota:</strong> ${petName}<br>
+      <strong>Tipo:</strong> ${petType}<br>
+      <strong>Fecha:</strong> ${selectedDate}<br>
+      <strong>Hora:</strong> ${selectedTime}<br>
+      <strong>Dueño:</strong> ${ownerName}<br>
+      <strong>Teléfono:</strong> ${ownerPhone}
+    `;
+    document.getElementById("confirmation-modal").style.display = "flex";
+  } else {
+    alert("Error al registrar la cita: " + data.message);
+  }
 }
 
 function closeModal() {

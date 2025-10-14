@@ -21,14 +21,14 @@ app.add_middleware(
 # Conexión con MySQL
 db = mysql.connector.connect(
     host="localhost",
-    user="root",  # cambia si usas otro usuario
+    user="root",  # tu usuario de MySQL
     password="Barriosdice3105",  # tu contraseña
-    database="usuarios_login"
+    database="usuarios_login"  # nombre de tu base
 )
 
 cursor = db.cursor(dictionary=True)
 
-# Modelos de datos
+# ------------------ MODELOS ------------------
 class RegisterRequest(BaseModel):
     nombre: str
     email: str
@@ -39,18 +39,34 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+class MascotaRequest(BaseModel):
+    id_usuario: int
+    nombre: str
+    tipo: str
+    raza: str | None = None
+    edad: int | None = None
+    motivo_consulta: str | None = None
+    telefono: str
+    fecha_registro: str
 
-# Montar carpeta de estáticos (CSS, JS, imágenes)
+# ------------------ ARCHIVOS ESTÁTICOS ------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")  # apunta a la carpeta frontend
+FRONTEND_DIR = os.path.abspath(FRONTEND_DIR)
+
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
-# Endpoint inicial que devuelve index.html
+# ------------------ ENDPOINTS ------------------
+
 @app.get("/")
 def serve_index():
     return FileResponse(os.path.join(FRONTEND_DIR, "login.html"))
 
-# Ruta de registro
+@app.get("/agendar")
+def serve_agendar():
+    return FileResponse(os.path.join(FRONTEND_DIR, "agendar.html"))
+
+# Registro de usuario
 @app.post("/register")
 def register(data: RegisterRequest):
     sql = "INSERT INTO usuarios (nombre, correo, usuario, password) VALUES (%s, %s, %s, %s)"
@@ -62,24 +78,44 @@ def register(data: RegisterRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Ruta de login
+# Login de usuario
 @app.post("/login")
 def login(data: LoginRequest):
-    sql = "SELECT * FROM usuarios WHERE correo = %s AND password = %s"
+    sql = "SELECT id, nombre, correo FROM usuarios WHERE correo = %s AND password = %s"
     values = (data.email, data.password)
     cursor.execute(sql, values)
-    result = cursor.fetchall()
-    if len(result) > 0:
-        return {"success": True, "message": "Login exitoso"}
+    result = cursor.fetchone()
+    if result:
+        return {"success": True, "message": "Login exitoso", "usuario": result}
     else:
         return {"success": False, "message": "Usuario o contraseña incorrectos"}
 
+# Registrar mascota / cita
+@app.post("/registrar_mascota")
+def registrar_mascota(data: MascotaRequest):
+    sql = """
+        INSERT INTO mascotas (id_usuario, nombre, tipo, raza, edad, motivo_consulta, telefono, fecha_registro)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    values = (
+        data.id_usuario,
+        data.nombre,
+        data.tipo,
+        data.raza,
+        data.edad,
+        data.motivo_consulta,
+        data.telefono,
+        data.fecha_registro
+    )
 
-# Endpoint para página de agendar
-@app.get("/agendar")
-def serve_agendar():
-    return FileResponse(os.path.join(FRONTEND_DIR, "agendar.html"))
+    try:
+        cursor.execute(sql, values)
+        db.commit()
+        return {"success": True, "message": "Cita registrada correctamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+# ------------------ INICIO DEL SERVIDOR ------------------
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=3000, reload=True)
