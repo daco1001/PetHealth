@@ -1,39 +1,45 @@
-from fastapi import FastAPI, HTTPException, Request
+from dotenv import load_dotenv
+import os
+import mysql.connector
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-import os
-import mysql.connector
+
+load_dotenv()
 
 # Inicializar aplicación FastAPI
 app = FastAPI()
 
-# Configuración CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # puedes restringir a ["http://localhost:3000"]
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Conexión con MySQL (usa variables de entorno si las configuras)
+# Conexión con MySQL (usar variables de entorno; no dejar contraseñas en el código)
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_USER = os.getenv("DB_USER", "root")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "Barriosdice3105")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "Barriosdice3105")  # <--- contraseña previa puesta por defecto
 DB_NAME = os.getenv("DB_NAME", "usuarios_login")
 
-db = mysql.connector.connect(
-    host=DB_HOST,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    database=DB_NAME
-)
+try:
+    db = mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        database=DB_NAME
+    )
+    cursor = db.cursor(dictionary=True)
+except Exception as e:
+    # Si la conexión falla, lo registramos y levantamos error al arrancar
+    raise RuntimeError("No se pudo conectar a la base de datos: " + str(e)) from e
 
-cursor = db.cursor(dictionary=True)
-
-# ------------------ MODELOS ------------------
+# Modelos pydantic
 class RegisterRequest(BaseModel):
     nombre: str
     email: str
@@ -54,14 +60,10 @@ class MascotaRequest(BaseModel):
     telefono: str
     fecha_registro: str
 
-# ------------------ ARCHIVOS ESTÁTICOS ------------------
+# Rutas estáticas / templates
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")
-FRONTEND_DIR = os.path.abspath(FRONTEND_DIR)
-
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "../frontend"))
 app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
-
-# ------------------ ENDPOINTS ------------------
 
 @app.get("/")
 def serve_index():
@@ -71,7 +73,7 @@ def serve_index():
 def serve_agendar():
     return FileResponse(os.path.join(FRONTEND_DIR, "agendar.html"))
 
-# Registro de usuario
+# Endpoints
 @app.post("/register")
 def register(data: RegisterRequest):
     sql = "INSERT INTO usuarios (nombre, correo, usuario, password) VALUES (%s, %s, %s, %s)"
@@ -84,7 +86,6 @@ def register(data: RegisterRequest):
         db.rollback()
         raise HTTPException(status_code=500, detail="Error al registrar usuario") from e
 
-# Login de usuario
 @app.post("/login")
 def login(data: LoginRequest):
     sql = "SELECT id, nombre, correo FROM usuarios WHERE correo = %s AND password = %s"
@@ -99,7 +100,6 @@ def login(data: LoginRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error al hacer login") from e
 
-# Registrar mascota / cita
 @app.post("/registrar_mascota")
 def registrar_mascota(data: MascotaRequest):
     sql = """
@@ -116,16 +116,14 @@ def registrar_mascota(data: MascotaRequest):
         data.telefono,
         data.fecha_registro
     )
-
     try:
         cursor.execute(sql, values)
         db.commit()
-        return {"success": True, "message": "Cita registrada correctamente"}
+        return {"success": True, "message": "Mascota registrada correctamente"}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Error al registrar mascota") from e
 
-# Obtener mascotas de un usuario
 @app.get("/mascotas/{id_usuario}")
 def obtener_mascotas(id_usuario: int):
     try:
@@ -135,7 +133,6 @@ def obtener_mascotas(id_usuario: int):
         return {"success": True, "mascotas": resultados}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error al obtener mascotas") from e
-
 # ------------------ INICIO DEL SERVIDOR ------------------
 if __name__ == "__main__":
     import uvicorn

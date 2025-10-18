@@ -2,7 +2,9 @@ document.getElementById("btn_registrarse").addEventListener("click", register);
 document.getElementById("btn_sesion").addEventListener("click", iniciarSesion);
 window.addEventListener("resize", anchoPagina);
 
-var contenerdor_login_register = document.querySelector(".contenedor_login-register");
+var contenerdor_login_register = document.querySelector(
+  ".contenedor_login-register"
+);
 var formulario__login = document.querySelector(".formulario_login");
 var formulario__register = document.querySelector(".formulario_register");
 var caja_t_login = document.querySelector(".caja_t_login");
@@ -66,7 +68,7 @@ document.getElementById("registerBtn").addEventListener("click", async () => {
   const res = await fetch("http://localhost:3000/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nombre, email, usuario, password })
+    body: JSON.stringify({ nombre, email, usuario, password }),
   });
 
   const data = await res.json();
@@ -81,14 +83,14 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const res = await fetch("http://localhost:3000/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password }),
   });
 
   const data = await res.json();
 
-  if (data.success) {
-    localStorage.setItem("usuario_id", data.usuario.id);
-    localStorage.setItem("usuario_nombre", data.usuario.nombre);
+  if (data.success && data.usuario) {
+    // guarda el objeto usuario tal cual (contiene id, nombre, correo)
+    localStorage.setItem("usuario", JSON.stringify(data.usuario));
     window.location.href = "/agendar";
   } else {
     alert("Credenciales incorrectas");
