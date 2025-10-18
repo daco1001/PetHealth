@@ -76,7 +76,7 @@ def register(data: RegisterRequest):
         db.commit()
         return {"message": "Usuario registrado correctamente"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 # Login de usuario
 @app.post("/login")
@@ -113,7 +113,7 @@ def registrar_mascota(data: MascotaRequest):
         db.commit()
         return {"success": True, "message": "Cita registrada correctamente"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 # ------------------ INICIO DEL SERVIDOR ------------------
 if __name__ == "__main__":
