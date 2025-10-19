@@ -16,9 +16,17 @@ const availableHours = [
 let selectedDate = null;
 let selectedTime = null;
 
-// Mostrar nombre del usuario logueado
-document.addEventListener("DOMContentLoaded", () => {
+// Mostrar nombre del usuario logueado y verificar mascotas
+document.addEventListener("DOMContentLoaded", async () => {
   const nombreUsuario = localStorage.getItem("usuario_nombre");
+  const idUsuario = localStorage.getItem("usuario_id");
+
+  if (!idUsuario) {
+    alert("No hay sesión activa. Inicia sesión nuevamente.");
+    window.location.href = "/";
+    return;
+  }
+
   if (nombreUsuario) {
     const titulo = document.createElement("h3");
     titulo.textContent = `👋 Bienvenido, ${nombreUsuario}`;
@@ -27,13 +35,66 @@ document.addEventListener("DOMContentLoaded", () => {
       .insertAdjacentElement("afterend", titulo);
   }
 
+  // 🔍 Verificar si el usuario ya tiene mascotas registradas
+  try {
+    const response = await fetch(`http://localhost:3000/mascotas_usuario/${idUsuario}`);
+    const data = await response.json();
+
+    if (data.mascotas && data.mascotas.length > 0) {
+      mostrarMascotas(data.mascotas);
+    } else {
+      document.getElementById("form-section").style.display = "flex";
+    }
+  } catch (error) {
+    console.error("Error al cargar mascotas:", error);
+    document.getElementById("form-section").style.display = "flex";
+  }
+
   initCalendar();
   initTimeSlots();
   document
     .getElementById("submit-appointment")
     .addEventListener("click", submitAppointment);
+
+  // Evento para registrar una nueva mascota
+  const btnNuevaMascota = document.getElementById("nueva-mascota-btn");
+  if (btnNuevaMascota) {
+    btnNuevaMascota.addEventListener("click", () => {
+      document.getElementById("mascotas-section").style.display = "none";
+      document.getElementById("form-section").style.display = "flex";
+    });
+  }
 });
 
+// ====================== //
+//   Mostrar mascotas
+// ====================== //
+function mostrarMascotas(mascotas) {
+  const contenedor = document.getElementById("lista-mascotas");
+  contenedor.innerHTML = "";
+
+  mascotas.forEach((m) => {
+    const card = document.createElement("div");
+    card.classList.add("mascota-card");
+    card.innerHTML = `
+      <p><strong>Nombre:</strong> ${m.nombre}</p>
+      <p><strong>Tipo:</strong> ${m.tipo}</p>
+      <p><strong>Raza:</strong> ${m.raza || "N/A"}</p>
+      <p><strong>Edad:</strong> ${m.edad || "N/A"} años</p>
+      <p><strong>Teléfono:</strong> ${m.telefono}</p>
+      <p><strong>Motivo de consulta:</strong> ${m.motivo_consulta || "N/A"}</p>
+      <p><strong>Fecha de registro:</strong> ${m.fecha_registro}</p>
+    `;
+    contenedor.appendChild(card);
+  });
+
+  document.getElementById("mascotas-section").style.display = "block";
+  document.getElementById("form-section").style.display = "none";
+}
+
+// ====================== //
+//   Funciones de calendario
+// ====================== //
 function initCalendar() {
   const weekDaysContainer = document.getElementById("week-days");
   const today = new Date();
@@ -50,9 +111,7 @@ function initCalendar() {
     dayElement.innerHTML = `<div>${date.toLocaleDateString("es-ES", {
       weekday: "long",
     })}</div>
-                            <div>${date.getDate()}/${
-      date.getMonth() + 1
-    }</div>`;
+                            <div>${date.getDate()}/${date.getMonth() + 1}</div>`;
     dayElement.addEventListener("click", () =>
       selectDate(dayElement.dataset.date)
     );
@@ -97,6 +156,9 @@ function selectTime(time) {
     .classList.add("selected");
 }
 
+// ====================== //
+//   Registrar mascota
+// ====================== //
 async function submitAppointment() {
   const idUsuario = localStorage.getItem("usuario_id");
   if (!idUsuario) {
@@ -140,7 +202,7 @@ async function submitAppointment() {
 
   const data = await response.json();
 
-  if (data.success) {
+  if (data.success || response.ok) {
     document.getElementById("confirmation-details").innerHTML = `
       <strong>Mascota:</strong> ${petName}<br>
       <strong>Tipo:</strong> ${petType}<br>
@@ -155,6 +217,9 @@ async function submitAppointment() {
   }
 }
 
+// ====================== //
+//   Modal de confirmación
+// ====================== //
 function closeModal() {
   document.getElementById("confirmation-modal").style.display = "none";
 }

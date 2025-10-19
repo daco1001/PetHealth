@@ -66,54 +66,78 @@ def serve_index():
 def serve_agendar():
     return FileResponse(os.path.join(FRONTEND_DIR, "agendar.html"))
 
-# Registro de usuario
 @app.post("/register")
-def register(data: RegisterRequest):
-    sql = "INSERT INTO usuarios (nombre, correo, usuario, password) VALUES (%s, %s, %s, %s)"
-    values = (data.nombre, data.email, data.usuario, data.password)
+async def register(data: RegisterRequest):
     try:
+        sql = "INSERT INTO usuarios (nombre, correo, usuario, password) VALUES (%s, %s, %s, %s)"
+        # usar data.email (campo recibido en JSON) y guardarlo en la columna 'correo'
+        values = (data.nombre, data.email, data.usuario, data.password)
         cursor.execute(sql, values)
         db.commit()
-        return {"message": "Usuario registrado correctamente"}
+        return {"success": True, "message": "Usuario registrado correctamente"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al registrar usuario") from e
 
-# Login de usuario
 @app.post("/login")
-def login(data: LoginRequest):
-    sql = "SELECT id, nombre, correo FROM usuarios WHERE correo = %s AND password = %s"
-    values = (data.email, data.password)
-    cursor.execute(sql, values)
-    result = cursor.fetchone()
-    if result:
-        return {"success": True, "message": "Login exitoso", "usuario": result}
-    else:
-        return {"success": False, "message": "Usuario o contraseña incorrectos"}
-
-# Registrar mascota / cita
-@app.post("/registrar_mascota")
-def registrar_mascota(data: MascotaRequest):
-    sql = """
-        INSERT INTO mascotas (id_usuario, nombre, tipo, raza, edad, motivo_consulta, telefono, fecha_registro)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """
-    values = (
-        data.id_usuario,
-        data.nombre,
-        data.tipo,
-        data.raza,
-        data.edad,
-        data.motivo_consulta,
-        data.telefono,
-        data.fecha_registro
-    )
-
+async def login(data: LoginRequest):
     try:
+        sql = "SELECT id, nombre, correo FROM usuarios WHERE correo = %s AND password = %s"
+        cursor.execute(sql, (data.email, data.password))
+        user = cursor.fetchone()
+        if user:
+            # devolver con clave 'usuario' para ser compatible con el frontend
+            return {"success": True, "usuario": user}
+        else:
+            # devolver objeto manejable por frontend (sin lanzar excepción 401)
+            return {"success": False, "message": "Usuario o contraseña incorrectos"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error al realizar login") from e
+
+@app.post("/registrar_mascota")
+async def registrar_mascota(data: MascotaRequest):
+    try:
+        sql = """
+        INSERT INTO mascotas 
+        (id_usuario, nombre, tipo, raza, edad, motivo_consulta, telefono, fecha_registro) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        values = (
+            data.id_usuario,
+            data.nombre,
+            data.tipo,
+            data.raza,
+            data.edad,
+            data.motivo_consulta,
+            data.telefono,
+            data.fecha_registro
+        )
         cursor.execute(sql, values)
         db.commit()
         return {"success": True, "message": "Cita registrada correctamente"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+@app.get("/mascotas_usuario/{id_usuario}")
+async def obtener_mascotas(id_usuario: int):
+    try:
+        sql = "SELECT * FROM mascotas WHERE id_usuario = %s"
+        cursor.execute(sql, (id_usuario,))
+        mascotas = cursor.fetchall()
+        return {"mascotas": mascotas}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+@app.get("/mascotas/{id_usuario}")
+async def obtener_mascotas_compat(id_usuario: int):
+    try:
+        sql = "SELECT id, id_usuario, nombre, tipo, raza, edad, motivo_consulta, telefono, fecha_registro FROM mascotas WHERE id_usuario = %s"
+        cursor.execute(sql, (id_usuario,))
+        resultados = cursor.fetchall()
+        return {"success": True, "mascotas": resultados}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error al obtener mascotas") from e
 
 # ------------------ INICIO DEL SERVIDOR ------------------
 if __name__ == "__main__":

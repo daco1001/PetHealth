@@ -28,9 +28,7 @@
     <section class="hero">
       <div class="container">
         <h1>Cuidamos de tu mascota como si fuera nuestra</h1>
-        <p>
-          Agenda citas fácilmente y brinda la mejor atención a tu compañero fiel
-        </p>
+        <p>Agenda citas fácilmente y brinda la mejor atención a tu compañero fiel</p>
         <a href="#appointment" class="btn">Agendar cita ahora</a>
       </div>
     </section>
@@ -39,19 +37,22 @@
     <section id="appointment" class="appointment-section">
       <div class="container">
         <h2 class="section-title">Agendar Cita</h2>
-        <div class="appointment-container">
-          <!-- Formulario de registro -->
+
+        <!-- 🐾 Sección para mostrar mascotas registradas -->
+        <div id="mascotas-section" style="display: none;">
+          <h3>Tus mascotas registradas</h3>
+          <div id="lista-mascotas"></div>
+          <button id="nueva-mascota-btn" class="submit-btn">Registrar otra mascota</button>
+        </div>
+
+        <!-- 📝 Formulario de registro -->
+        <div id="form-section" class="appointment-container" style="display: none;">
           <div class="form-container">
             <h3>Datos de la mascota</h3>
             <form id="appointment-form">
               <div class="form-group">
                 <label for="pet-name">Nombre de la mascota</label>
-                <input
-                  type="text"
-                  id="pet-name"
-                  class="form-control"
-                  required
-                />
+                <input type="text" id="pet-name" class="form-control" required />
               </div>
               <div class="form-group">
                 <label for="pet-type">Tipo de mascota</label>
@@ -64,26 +65,16 @@
                 </select>
               </div>
               <div class="form-group">
-                <label for="pet-breed">Raza</label> 
+                <label for="pet-breed">Raza</label>
                 <input type="text" id="pet-breed" class="form-control" />
               </div>
               <div class="form-group">
                 <label for="pet-age">Edad en Años</label>
-                <input
-                  type="number"
-                  id="pet-age"
-                  class="form-control"
-                  min="0"
-                />
+                <input type="number" id="pet-age" class="form-control" min="0" />
               </div>
               <div class="form-group">
                 <label for="owner-phone">Teléfono</label>
-                <input
-                  type="tel"
-                  id="owner-phone"
-                  class="form-control"
-                  required
-                />
+                <input type="tel" id="owner-phone" class="form-control" required />
               </div>
               <div class="form-group">
                 <label for="reason">Motivo de la consulta</label>
@@ -97,14 +88,10 @@
             <h3>Selecciona fecha y hora</h3>
             <div class="calendar">
               <h4>Días disponibles (Lunes a Viernes)</h4>
-              <div class="week-days" id="week-days">
-                <!-- Los días se generarán con JavaScript -->
-              </div>
+              <div class="week-days" id="week-days"></div>
 
               <h4>Horarios disponibles</h4>
-              <div class="time-slots" id="time-slots">
-                <!-- Los horarios se generarán con JavaScript -->
-              </div>
+              <div class="time-slots" id="time-slots"></div>
             </div>
 
             <button type="button" id="submit-appointment" class="submit-btn">
