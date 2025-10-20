@@ -1,18 +1,32 @@
+# Importaciones de FastAPI
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import mysql.connector
 from fastapi.middleware.cors import CORSMiddleware
-import os
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+# Importaciones de Pydantic para validación
+from pydantic import BaseModel
+
+# Importaciones del sistema
+import os
+import mysql.connector
+
+# Importaciones de Google (solo si las vas a usar)
+from google_auth_oauthlib.flow import InstalledAppFlow
+# Removemos 'build' ya que no se está usando
+
 # Inicializar aplicación FastAPI
-app = FastAPI()
+app = FastAPI(
+    title="PetHealth API",
+    description="API para gestión de citas veterinarias",
+    version="1.0.0"
+)
+
 
 # Configuración CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # puedes restringir a ["http://localhost:3000"]
+    allow_origins=["http://127.0.0.1:3000","http://localhost:3000"],  # Especifica los orígenes permitidos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

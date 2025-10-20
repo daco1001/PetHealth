@@ -7,7 +7,9 @@ document.getElementById("btn_registrarse").addEventListener("click", register);
 document.getElementById("btn_sesion").addEventListener("click", iniciarSesion);
 window.addEventListener("resize", anchoPagina);
 
-var contenerdor_login_register = document.querySelector(".contenedor_login-register");
+var contenerdor_login_register = document.querySelector(
+  ".contenedor_login-register"
+);
 var formulario__login = document.querySelector(".formulario_login");
 var formulario__register = document.querySelector(".formulario_register");
 var caja_t_login = document.querySelector(".caja_t_login");
@@ -122,5 +124,3 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     alert("Credenciales incorrectas");
   }
 });
-
-
