@@ -63,12 +63,21 @@ class MascotaRequest(BaseModel):
     telefono: str
     fecha_registro: str
 
+class ProductoRequest(BaseModel):
+    nombre: str
+    precio: float
+    cantidad: int
+
 # ------------------ ARCHIVOS ESTÁTICOS ------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "../frontend")  # apunta a la carpeta frontend
-FRONTEND_DIR = os.path.abspath(FRONTEND_DIR)
+FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, "../frontend"))
 
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# montar /static si aún no está montado
+try:
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+except Exception:
+    # si ya estaba montado, ignorar
+    pass
 
 # ------------------ ENDPOINTS ------------------
 
@@ -152,6 +161,59 @@ async def obtener_mascotas_compat(id_usuario: int):
         return {"success": True, "mascotas": resultados}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Error al obtener mascotas") from e
+
+@app.get("/inventario")
+def serve_inventario():
+    """
+    Sirve la página de inventario estática.
+    Asegúrate de que frontend/inventario.html exista.
+    """
+    return FileResponse (os.path.join(FRONTEND_DIR, "inventario.html"))
+
+@app.post("/inventario/agregar")
+async def agregar_producto(data: ProductoRequest):
+    try:
+        sql = "INSERT INTO inventario (nombre, precio, cantidad) VALUES (%s, %s, %s)"
+        values = (data.nombre, data.precio, data.cantidad)
+        cursor.execute(sql, values)
+        db.commit()
+        return {"success": True, "message": "Producto agregado correctamente", "id": cursor.lastrowid}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al agregar producto") from e
+
+@app.get("/inventario/productos")
+async def obtener_productos():
+    try:
+        sql = "SELECT id, nombre, precio, cantidad FROM inventario ORDER BY fecha_creacion DESC"
+        cursor.execute(sql)
+        productos = cursor.fetchall()
+        return {"success": True, "productos": productos}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error al obtener productos") from e
+
+@app.put("/inventario/actualizar/{producto_id}")
+async def actualizar_producto(producto_id: int, data: ProductoRequest):
+    try:
+        sql = "UPDATE inventario SET nombre = %s, precio = %s, cantidad = %s WHERE id = %s"
+        values = (data.nombre, data.precio, data.cantidad, producto_id)
+        cursor.execute(sql, values)
+        db.commit()
+        return {"success": True, "message": "Producto actualizado"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al actualizar producto") from e
+
+@app.delete("/inventario/eliminar/{producto_id}")
+async def eliminar_producto(producto_id: int):
+    try:
+        sql = "DELETE FROM inventario WHERE id = %s"
+        cursor.execute(sql, (producto_id,))
+        db.commit()
+        return {"success": True, "message": "Producto eliminado"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Error al eliminar producto") from e
 
 # ------------------ INICIO DEL SERVIDOR ------------------
 if __name__ == "__main__":

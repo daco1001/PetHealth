@@ -108,15 +108,18 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   const res = await fetch("http://localhost:3000/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: correo, password }), // El backend usa "email"
+    body: JSON.stringify({ email: correo, password }),
   });
 
   const data = await res.json();
   console.log("Respuesta del backend:", data);
 
-  const user = data.user || data.usuario; // acepta ambas variantes por compatibilidad
+  const user = data.user || data.usuario;
 
   if (data.success && user) {
+    // guardar formatos compatibles
+    localStorage.setItem("usuario", JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user)); // alias opcional
     localStorage.setItem("usuario_id", user.id);
     localStorage.setItem("usuario_nombre", user.nombre);
     window.location.href = "/agendar";

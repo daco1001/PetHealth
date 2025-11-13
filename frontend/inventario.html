@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Inventario - PetHealt</title>
+    <link rel="stylesheet" href="/static/inventario.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-content">
+        <div class="logo"><span>Pet</span>Healt</div>
+        <nav>
+          <ul>
+            <li><a href="/agendar">Agendar</a></li>
+            <li><a href="/inventario" class="active">Inventario</a></li>
+            <li><a href="/">Cerrar sesión</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1>Inventario</h1>
+        <p>Gestiona tus productos y stock</p>
+      </section>
+
+      <section class="inventory-panel">
+        <div class="inventory-controls">
+          <form id="item-form" class="form-inline" autocomplete="off">
+            <input
+              type="text"
+              id="item-name"
+              placeholder="Nombre del producto"
+              required
+            />
+            <input
+              type="number"
+              id="item-price"
+              placeholder="Precio"
+              step="0.01"
+              min="0"
+              required
+            />
+            <input
+              type="number"
+              id="item-quantity"
+              placeholder="Cantidad"
+              min="0"
+              value="1"
+              required
+            />
+            <button type="submit" class="btn">Agregar Producto</button>
+          </form>
+
+          <div class="stock-summary">
+            <p>Total productos: <span id="items-count">0</span></p>
+            <p>Stock total: <span id="stock-total">0</span></p>
+          </div>
+        </div>
+
+        <div class="inventory-table-wrap">
+          <table id="inventory-table" class="inventory-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="table-footer">
+            <button id="export-excel" class="btn">📥 Exportar a Excel</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>PetHealt</h3>
+            <p>Brindando cuidado y amor a tus mascotas desde 2024.</p>
+          </div>
+          <div class="footer-section">
+            <h3>Contacto</h3>
+            <p>📍 cr 1A#18A-13, Fusagasuga</p>
+            <p>📞 (+57) 3148074127</p>
+            <p>✉️ Pethealt@gmail.com</p>
+          </div>
+          <div class="footer-section">
+            <h3>Horario</h3>
+            <p>Lunes a Viernes: 8:00 AM - 6:00 PM</p>
+            <p>Sábados: 9:00 AM - 2:00 PM</p>
+            <p>Domingos: Cerrado</p>
+          </div>
+        </div>
+        <div class="copyright">
+          <p>© 2024 Pethealt - Todos los derechos reservados</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/static/inventario.js"></script>
+  </body>
+</html>

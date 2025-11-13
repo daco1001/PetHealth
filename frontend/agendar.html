@@ -11,13 +11,12 @@
     <header>
       <div class="container">
         <div class="header-content">
-          <div class="logo">Pet<span>Healt</span></div>
+          <div class="logo"><span>Pet</span>Healt</div>
           <nav>
             <ul>
-              <li><a href="#">Inicio</a></li>
-              <li><a href="#">Servicios</a></li>
-              <li><a href="#">Nosotros</a></li>
-              <li><a href="#">Contacto</a></li>
+              <li><a href="/agendar">Agendar</a></li>
+              <li><a id="link-inventario" href="/inventario">Inventario</a></li>
+              <li><a id="logout" href="/">Cerrar sesión</a></li>
             </ul>
           </nav>
         </div>
@@ -28,7 +27,9 @@
     <section class="hero">
       <div class="container">
         <h1>Cuidamos de tu mascota como si fuera nuestra</h1>
-        <p>Agenda citas fácilmente y brinda la mejor atención a tu compañero fiel</p>
+        <p>
+          Agenda citas fácilmente y brinda la mejor atención a tu compañero fiel
+        </p>
         <a href="#appointment" class="btn">Agendar cita ahora</a>
       </div>
     </section>
@@ -39,20 +40,31 @@
         <h2 class="section-title">Agendar Cita</h2>
 
         <!-- 🐾 Sección para mostrar mascotas registradas -->
-        <div id="mascotas-section" style="display: none;">
+        <div id="mascotas-section" style="display: none">
           <h3>Tus mascotas registradas</h3>
           <div id="lista-mascotas"></div>
-          <button id="nueva-mascota-btn" class="submit-btn">Registrar otra mascota</button>
+          <button id="nueva-mascota-btn" class="submit-btn">
+            Registrar otra mascota
+          </button>
         </div>
 
         <!-- 📝 Formulario de registro -->
-        <div id="form-section" class="appointment-container" style="display: none;">
+        <div
+          id="form-section"
+          class="appointment-container"
+          style="display: none"
+        >
           <div class="form-container">
             <h3>Datos de la mascota</h3>
             <form id="appointment-form">
               <div class="form-group">
                 <label for="pet-name">Nombre de la mascota</label>
-                <input type="text" id="pet-name" class="form-control" required />
+                <input
+                  type="text"
+                  id="pet-name"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="pet-type">Tipo de mascota</label>
@@ -70,11 +82,21 @@
               </div>
               <div class="form-group">
                 <label for="pet-age">Edad en Años</label>
-                <input type="number" id="pet-age" class="form-control" min="0" />
+                <input
+                  type="number"
+                  id="pet-age"
+                  class="form-control"
+                  min="0"
+                />
               </div>
               <div class="form-group">
                 <label for="owner-phone">Teléfono</label>
-                <input type="tel" id="owner-phone" class="form-control" required />
+                <input
+                  type="tel"
+                  id="owner-phone"
+                  class="form-control"
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="reason">Motivo de la consulta</label>
@@ -139,5 +161,6 @@
     </div>
 
     <script src="/static/agendar.js"></script>
+    <script src="/static/agendar-inventario.js"></script>
   </body>
 </html>
