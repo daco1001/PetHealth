@@ -318,3 +318,12 @@ footer {
     margin-top: 1rem;
     cursor: pointer;
 }
+
+.mascota-card {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+}
+

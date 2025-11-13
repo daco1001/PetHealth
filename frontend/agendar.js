@@ -16,146 +16,38 @@ const availableHours = [
 let selectedDate = null;
 let selectedTime = null;
 
-// Mostrar nombre del usuario logueado
-document.addEventListener("DOMContentLoaded", () => {
-  // Buscar usuario guardado (maneja distintas claves y formas)
-  const possibleKeys = ["usuario", "user", "Usuario", "USER"];
-  let stored = null;
-  for (const k of possibleKeys) {
-    const s = localStorage.getItem(k);
-    if (s) {
-      stored = s;
-      break;
-    }
-  }
+// Mostrar nombre del usuario logueado y verificar mascotas
+document.addEventListener("DOMContentLoaded", async () => {
+  const nombreUsuario = localStorage.getItem("usuario_nombre");
+  const idUsuario = localStorage.getItem("usuario_id");
 
-  if (!stored) {
-    console.warn("No hay usuario en localStorage. Redirigiendo a login.");
+  if (!idUsuario) {
+    alert("No hay sesión activa. Inicia sesión nuevamente.");
     window.location.href = "/";
     return;
   }
 
-  let user;
+  if (nombreUsuario) {
+    const titulo = document.createElement("h3");
+    titulo.textContent = `👋 Bienvenido, ${nombreUsuario}`;
+    document
+      .querySelector(".section-title")
+      .insertAdjacentElement("afterend", titulo);
+  }
+
+  // 🔍 Verificar si el usuario ya tiene mascotas registradas
   try {
-    user = JSON.parse(stored);
-  } catch (err) {
-    console.error("Error parseando usuario desde localStorage:", err, stored);
-    window.location.href = "/";
-    return;
-  }
+    const response = await fetch(`http://localhost:3000/mascotas_usuario/${idUsuario}`);
+    const data = await response.json();
 
-  // Intentar varias claves de id posibles
-  const userId =
-    user.id ||
-    user.ID ||
-    user.id_usuario ||
-    user.userId ||
-    user.usuario_id ||
-    null;
-  if (!userId) {
-    console.error("No se encontró id de usuario en el objeto:", user);
-    window.location.href = "/";
-    return;
-  }
-
-  const petContainer = document.getElementById("pet-container");
-  const petCard = document.getElementById("pet-card");
-  const registrarOtraBtn = document.getElementById("registrar-otra");
-  const formContainer = document.getElementById("form-container");
-  const petForm = document.getElementById("pet-form");
-
-  // poner id_usuario en el form (si existe)
-  const idInput = document.getElementById("id_usuario");
-  if (idInput) idInput.value = userId;
-
-  // Cargar mascotas desde el backend
-  fetch(`/mascotas/${encodeURIComponent(userId)}`)
-    .then((res) => res.json().catch(() => ({ success: false })))
-    .then((data) => {
-      // Acepta distintos formatos: { success: true, mascotas: [...] } o directamente array
-      const mascotas = Array.isArray(data.mascotas)
-        ? data.mascotas
-        : Array.isArray(data)
-        ? data
-        : [];
-      if (mascotas.length > 0) {
-        // Mostrar la primera mascota (puedes adaptar para listar todas)
-        const pet = mascotas[0];
-        petCard.innerHTML = `
-          <p><strong>Nombre:</strong> ${escapeHtml(pet.nombre)}</p>
-          <p><strong>Tipo:</strong> ${escapeHtml(pet.tipo)}</p>
-          <p><strong>Raza:</strong> ${escapeHtml(pet.raza || "")}</p>
-          <p><strong>Edad:</strong> ${escapeHtml(pet.edad ?? "")}</p>
-          <p><strong>Motivo:</strong> ${escapeHtml(pet.motivo_consulta || "")}</p>
-          <p><strong>Teléfono:</strong> ${escapeHtml(pet.telefono || "")}</p>
-          <p><strong>Registrada:</strong> ${escapeHtml(pet.fecha_registro || "")}</p>
-        `;
-        if (petContainer) petContainer.style.display = "block";
-        if (formContainer) formContainer.style.display = "none";
-      } else {
-        if (petContainer) petContainer.style.display = "none";
-        if (formContainer) formContainer.style.display = "block";
-      }
-    })
-    .catch((err) => {
-      console.error("Error al obtener mascotas:", err);
-      if (petContainer) petContainer.style.display = "none";
-      if (formContainer) formContainer.style.display = "block";
-    });
-
-  // Mostrar formulario al pulsar "Registrar otra mascota"
-  if (registrarOtraBtn) {
-    registrarOtraBtn.addEventListener("click", () => {
-      if (petContainer) petContainer.style.display = "none";
-      if (formContainer) formContainer.style.display = "block";
-    });
-  }
-
-  // Envío del formulario (si existe)
-  if (petForm) {
-    petForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const payload = {
-        id_usuario: parseInt(document.getElementById("id_usuario").value, 10),
-        nombre: document.getElementById("nombre").value,
-        tipo: document.getElementById("tipo").value,
-        raza: document.getElementById("raza").value,
-        edad: document.getElementById("edad").value
-          ? parseInt(document.getElementById("edad").value, 10)
-          : null,
-        motivo_consulta: document.getElementById("motivo_consulta").value,
-        telefono: document.getElementById("telefono").value,
-        fecha_registro: new Date().toISOString().split("T")[0],
-      };
-
-      fetch("/registrar_mascota", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((r) => r.json())
-        .then((resp) => {
-          if (resp.success) {
-            window.location.reload();
-          } else {
-            alert(resp.message || "Error al registrar mascota");
-          }
-        })
-        .catch((err) => {
-          console.error("Error al registrar mascota:", err);
-          alert("Error al registrar mascota");
-        });
-    });
-  }
-
-  function escapeHtml(text) {
-    if (text === null || text === undefined) return "";
-    return String(text)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    if (data.mascotas && data.mascotas.length > 0) {
+      mostrarMascotas(data.mascotas);
+    } else {
+      document.getElementById("form-section").style.display = "flex";
+    }
+  } catch (error) {
+    console.error("Error al cargar mascotas:", error);
+    document.getElementById("form-section").style.display = "flex";
   }
 
   initCalendar();
@@ -163,8 +55,46 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("submit-appointment")
     .addEventListener("click", submitAppointment);
+
+  // Evento para registrar una nueva mascota
+  const btnNuevaMascota = document.getElementById("nueva-mascota-btn");
+  if (btnNuevaMascota) {
+    btnNuevaMascota.addEventListener("click", () => {
+      document.getElementById("mascotas-section").style.display = "none";
+      document.getElementById("form-section").style.display = "flex";
+    });
+  }
 });
 
+// ====================== //
+//   Mostrar mascotas
+// ====================== //
+function mostrarMascotas(mascotas) {
+  const contenedor = document.getElementById("lista-mascotas");
+  contenedor.innerHTML = "";
+
+  mascotas.forEach((m) => {
+    const card = document.createElement("div");
+    card.classList.add("mascota-card");
+    card.innerHTML = `
+      <p><strong>Nombre:</strong> ${m.nombre}</p>
+      <p><strong>Tipo:</strong> ${m.tipo}</p>
+      <p><strong>Raza:</strong> ${m.raza || "N/A"}</p>
+      <p><strong>Edad:</strong> ${m.edad || "N/A"} años</p>
+      <p><strong>Teléfono:</strong> ${m.telefono}</p>
+      <p><strong>Motivo de consulta:</strong> ${m.motivo_consulta || "N/A"}</p>
+      <p><strong>Fecha de registro:</strong> ${m.fecha_registro}</p>
+    `;
+    contenedor.appendChild(card);
+  });
+
+  document.getElementById("mascotas-section").style.display = "block";
+  document.getElementById("form-section").style.display = "none";
+}
+
+// ====================== //
+//   Funciones de calendario
+// ====================== //
 function initCalendar() {
   const weekDaysContainer = document.getElementById("week-days");
   const today = new Date();
@@ -181,9 +111,7 @@ function initCalendar() {
     dayElement.innerHTML = `<div>${date.toLocaleDateString("es-ES", {
       weekday: "long",
     })}</div>
-                            <div>${date.getDate()}/${
-      date.getMonth() + 1
-    }</div>`;
+                            <div>${date.getDate()}/${date.getMonth() + 1}</div>`;
     dayElement.addEventListener("click", () =>
       selectDate(dayElement.dataset.date)
     );
@@ -228,6 +156,9 @@ function selectTime(time) {
     .classList.add("selected");
 }
 
+// ====================== //
+//   Registrar mascota
+// ====================== //
 async function submitAppointment() {
   const idUsuario = localStorage.getItem("usuario_id");
   if (!idUsuario) {
@@ -271,7 +202,7 @@ async function submitAppointment() {
 
   const data = await response.json();
 
-  if (data.success) {
+  if (data.success || response.ok) {
     document.getElementById("confirmation-details").innerHTML = `
       <strong>Mascota:</strong> ${petName}<br>
       <strong>Tipo:</strong> ${petType}<br>
@@ -286,6 +217,9 @@ async function submitAppointment() {
   }
 }
 
+// ====================== //
+//   Modal de confirmación
+// ====================== //
 function closeModal() {
   document.getElementById("confirmation-modal").style.display = "none";
 }
