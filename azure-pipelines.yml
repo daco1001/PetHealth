@@ -1,0 +1,31 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.10'
+  displayName: 'Install Python'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install fastapi uvicorn
+  displayName: 'Install dependencies'
+
+- script: |
+    python -m py_compile backend/main.py
+  displayName: 'Check backend syntax'
+
+- script: |
+    echo "Archivos del proyecto:"
+    ls -R
+  displayName: 'Show project files'
